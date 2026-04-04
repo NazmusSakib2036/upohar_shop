@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\SliderController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\CheckoutController;
 use App\Models\Slider;
 use App\Models\Category;
 use App\Models\Product;
@@ -36,6 +37,11 @@ Route::get('/gifts', function () {
 Route::get('/contact', function () {
     return view('home');
 });
+
+// Checkout Routes
+Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
+Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+Route::get('/order/{orderNumber}', [CheckoutController::class, 'confirmation'])->name('order.confirmation');
 
 // ==================== ADMIN ROUTES ====================
 Route::prefix('admin')->name('admin.')->group(function () {

@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="base-url" content="{{ url('/') }}">
     <title>@yield('title', 'উপহার Shop - গিফট শপ')</title>
 
     <!-- Fonts -->
@@ -91,9 +92,12 @@
     menuOpen: false,
     searchOpen: false,
     cartOpen: false,
-    cartItems: [],
-    cartCount: 0
-}">
+    cartItems: JSON.parse(localStorage.getItem('upohar_cart') || '[]'),
+    get cartCount() { return this.cartItems.reduce((sum, i) => sum + i.qty, 0); }
+}" x-init="
+    window.addEventListener('cart-updated', () => { cartItems = JSON.parse(localStorage.getItem('upohar_cart') || '[]'); });
+    window.addEventListener('open-cart', () => { cartOpen = true; });
+">
 
     {{-- ==================== HEADER (Floating Popup Sticky) ==================== --}}
     <div class="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 lg:px-10 pt-3 sm:pt-4">
@@ -130,8 +134,8 @@
                             <svg class="w-[18px] h-[18px] text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                             </svg>
-                            <span class="absolute -top-1 -right-1 w-4 h-4 bg-brand-pink text-white text-[9px] font-bold rounded-full flex items-center justify-center"
-                                  x-text="cartCount || '1'">1</span>
+                            <span x-show="cartCount > 0" class="absolute -top-1 -right-1 w-4 h-4 bg-brand-pink text-white text-[9px] font-bold rounded-full flex items-center justify-center"
+                                  x-text="cartCount"></span>
                         </button>
 
                         {{-- Guest Login Button --}}
@@ -335,7 +339,7 @@
              @click="cartOpen = false"></div>
 
         {{-- Cart Panel --}}
-        <div class="absolute inset-y-0 right-0 w-[380px] max-w-[90vw] bg-white shadow-2xl flex flex-col"
+        <div class="absolute inset-y-0 right-0 w-[400px] max-w-[92vw] bg-gray-50 shadow-2xl flex flex-col"
              x-show="cartOpen"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="translate-x-full"
@@ -345,50 +349,136 @@
              x-transition:leave-end="translate-x-full">
 
             {{-- Cart Header --}}
-            <div class="flex items-center justify-between p-5 border-b border-gray-100">
+            <div class="flex items-center justify-between px-5 py-5 bg-white">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-brand-pink rounded-xl flex items-center justify-center">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="w-12 h-12 bg-gradient-to-br from-brand-pink to-brand-pink-dark rounded-2xl flex items-center justify-center shadow-lg shadow-pink-200/50">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                         </svg>
                     </div>
                     <div>
-                        <h2 class="font-bold text-gray-800 text-lg leading-tight">আপনার কার্ট</h2>
-                        <p class="text-xs text-gray-400"><span x-text="cartCount">0</span> টি প্রোডাক্ট</p>
+                        <h2 class="font-bold text-gray-900 text-xl leading-tight">আপনার কার্ট</h2>
+                        <p class="text-xs text-gray-400 mt-0.5"><span x-text="cartCount">0</span> টি প্রোডাক্ট</p>
                     </div>
                 </div>
                 <button @click="cartOpen = false"
-                        class="w-9 h-9 bg-pink-100 hover:bg-pink-200 rounded-full flex items-center justify-center transition-colors">
-                    <svg class="w-4 h-4 text-brand-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="w-10 h-10 bg-pink-50 hover:bg-pink-100 rounded-xl flex items-center justify-center transition-all duration-200 hover:rotate-90">
+                    <svg class="w-5 h-5 text-brand-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
             </div>
 
-            {{-- Free Delivery Banner --}}
-            <div class="mx-4 mt-4 px-4 py-3 bg-pink-50 rounded-xl flex items-center gap-2 text-sm">
-                <svg class="w-5 h-5 text-brand-pink shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <span class="text-gray-600">আর <span class="font-bold text-brand-pink">৳2500</span> অর্ডার করলে ফ্রি ডেলিভারি</span>
+            {{-- Free Delivery Progress Banner --}}
+            <div x-show="cartCount > 0" class="mx-5 mt-3 px-4 py-3 bg-white rounded-2xl border border-pink-100">
+                <div class="flex items-center gap-2.5 text-sm mb-2.5">
+                    <div class="w-7 h-7 bg-pink-50 rounded-lg flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4 text-brand-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a2 2 0 104 0m-4 0a2 2 0 114 0"/>
+                        </svg>
+                    </div>
+                    <span class="text-gray-600" x-show="cartItems.reduce((s,i) => s + i.price * i.qty, 0) < 2500">
+                        আর <span class="font-bold text-brand-pink">৳<span x-text="(2500 - cartItems.reduce((s,i) => s + i.price * i.qty, 0)).toLocaleString('bn-BD')"></span></span> অর্ডার করলে ফ্রি ডেলিভারি!
+                    </span>
+                    <span class="text-green-600 font-semibold" x-show="cartItems.reduce((s,i) => s + i.price * i.qty, 0) >= 2500">
+                        🎉 ফ্রি ডেলিভারি পেয়ে গেছেন!
+                    </span>
+                </div>
+                {{-- Progress Bar --}}
+                <div class="w-full h-2 bg-pink-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-brand-pink to-brand-pink-dark rounded-full transition-all duration-500 ease-out"
+                         :style="'width: ' + Math.min(100, (cartItems.reduce((s,i) => s + i.price * i.qty, 0) / 2500) * 100) + '%'"></div>
+                </div>
             </div>
 
             {{-- Cart Content --}}
-            <div class="flex-1 flex flex-col items-center justify-center p-8">
+            <div class="flex-1 overflow-y-auto px-5 py-4">
                 {{-- Empty Cart State --}}
-                <div x-show="cartCount === 0" class="text-center">
-                    <div class="w-20 h-20 bg-pink-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-10 h-10 text-brand-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                        </svg>
+                <div x-show="cartCount === 0" class="text-center py-16">
+                    <div class="relative w-28 h-28 mx-auto mb-6">
+                        <div class="absolute inset-0 bg-pink-100 rounded-full animate-pulse opacity-50"></div>
+                        <div class="relative w-28 h-28 bg-gradient-to-br from-pink-50 to-pink-100 rounded-full flex items-center justify-center">
+                            <svg class="w-14 h-14 text-brand-pink/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
+                            </svg>
+                        </div>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-700 mb-1">কার্ট খালি আছে</h3>
-                    <p class="text-sm text-gray-400 mb-6">সুন্দর গিফট দেখতে শুরু করুন</p>
-                    <a href="/gifts" @click="cartOpen = false"
-                       class="inline-flex items-center px-6 py-3 bg-brand-pink hover:bg-brand-pink-dark text-white rounded-xl font-semibold transition-colors shadow-lg shadow-pink-200">
-                        গিফট দেখুন
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">কার্ট খালি আছে</h3>
+                    <p class="text-sm text-gray-400 mb-8 max-w-[200px] mx-auto">সুন্দর গিফট দেখতে শুরু করুন, প্রিয়জনকে সারপ্রাইজ দিন</p>
+                    <a :href="window.baseUrl + '/gifts'" @click="cartOpen = false"
+                       class="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-brand-pink to-brand-pink-dark text-white rounded-2xl font-semibold transition-all shadow-lg shadow-pink-300/40 hover:shadow-pink-400/60 hover:-translate-y-0.5">
+                        <span>🎁</span> গিফট দেখুন
                     </a>
                 </div>
+
+                {{-- Cart Items --}}
+                <div x-show="cartCount > 0" class="space-y-3">
+                    <template x-for="(item, index) in cartItems" :key="item.id">
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100/80 hover:shadow-md transition-shadow duration-200">
+                            <div class="flex gap-3.5">
+                                {{-- Product Image --}}
+                                <div class="w-20 h-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100">
+                                    <img :src="item.image || '/images/placeholder.png'" class="w-full h-full object-cover" :alt="item.name">
+                                </div>
+                                {{-- Product Info --}}
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <h4 class="text-sm font-bold text-gray-800 leading-snug line-clamp-2" x-text="item.name"></h4>
+                                        <button @click="cartItems.splice(index, 1); localStorage.setItem('upohar_cart', JSON.stringify(cartItems))"
+                                                class="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200 shrink-0">
+                                            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        </button>
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-0.5">৳<span x-text="Number(item.price).toLocaleString('bn-BD')"></span> × <span x-text="item.qty"></span></p>
+                                    <div class="flex items-center justify-between mt-2.5">
+                                        {{-- Quantity Controls --}}
+                                        <div class="flex items-center bg-gray-50 rounded-xl border border-gray-200/80 overflow-hidden">
+                                            <button @click="item.qty = Math.max(1, item.qty - 1); localStorage.setItem('upohar_cart', JSON.stringify(cartItems))"
+                                                    class="w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-brand-pink transition-colors font-medium text-lg">−</button>
+                                            <span class="w-10 h-9 flex items-center justify-center font-bold text-sm text-gray-800 border-x border-gray-200/80 bg-white" x-text="item.qty"></span>
+                                            <button @click="item.qty++; localStorage.setItem('upohar_cart', JSON.stringify(cartItems))"
+                                                    class="w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-brand-pink transition-colors font-medium text-lg">+</button>
+                                        </div>
+                                        {{-- Item Total --}}
+                                        <span class="text-base font-bold text-brand-pink">৳<span x-text="Number(item.price * item.qty).toLocaleString('bn-BD')"></span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            {{-- Cart Footer --}}
+            <div x-show="cartCount > 0" class="bg-white border-t border-gray-100 px-5 py-5 space-y-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+                {{-- Sub-total --}}
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-500">সাব-টোটাল</span>
+                    <span class="text-sm font-semibold text-gray-700">৳<span x-text="Number(cartItems.reduce((sum, i) => sum + (i.price * i.qty), 0)).toLocaleString('bn-BD')"></span></span>
+                </div>
+                {{-- Delivery --}}
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-500">ডেলিভারি চার্জ</span>
+                    <span class="text-sm text-gray-400">চেকআউটে দেখুন</span>
+                </div>
+                {{-- Divider --}}
+                <div class="border-t border-dashed border-gray-200"></div>
+                {{-- Grand Total --}}
+                <div class="flex justify-between items-center">
+                    <span class="text-base font-bold text-gray-900">সর্বমোট</span>
+                    <span class="text-xl font-bold text-brand-pink">৳<span x-text="Number(cartItems.reduce((sum, i) => sum + (i.price * i.qty), 0)).toLocaleString('bn-BD')"></span>+</span>
+                </div>
+                {{-- Checkout Button --}}
+                <a :href="window.baseUrl + '/checkout'"
+                   class="flex items-center justify-center gap-2 w-full py-4 bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white rounded-2xl font-bold text-base transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                    চেকআউট
+                </a>
+                {{-- Clear Cart --}}
+                <button @click="if(confirm('কার্ট খালি করতে চান?')) { cartItems = []; localStorage.setItem('upohar_cart', '[]'); }"
+                        class="w-full py-2 text-xs text-gray-400 hover:text-red-500 transition-colors flex items-center justify-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    কার্ট খালি করুন
+                </button>
             </div>
         </div>
     </div>
@@ -404,5 +494,8 @@
     <style>
         [x-cloak] { display: none !important; }
     </style>
+
+    <script>window.baseUrl = '{{ url("/") }}';</script>
+    @yield('scripts')
 </body>
 </html>

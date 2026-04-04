@@ -296,103 +296,206 @@
         </div>
     </section>
 
-    {{-- ==================== BRAND MARQUEE ==================== --}}
+    {{-- ==================== CATEGORY SCROLLING BAR ==================== --}}
     <section class="bg-white border-y border-gray-100 py-4 overflow-hidden">
-        <div class="flex brand-marquee whitespace-nowrap">
-            @for($i = 0; $i < 2; $i++)
-                <div class="flex items-center gap-8 px-4">
-                    <span class="flex items-center gap-2 text-sm font-medium text-gray-400">
-                        <span class="w-2 h-2 bg-red-400 rounded-full"></span> বিকাশ
-                    </span>
-                    <span class="flex items-center gap-2 text-sm font-medium text-gray-400">
-                        <span class="w-2 h-2 bg-pink-400 rounded-full"></span> নগদ
-                    </span>
-                    <span class="flex items-center gap-2 text-sm font-medium text-gray-400">
-                        <span class="w-2 h-2 bg-green-400 rounded-full"></span> উপায়
-                    </span>
-                    <span class="flex items-center gap-2 text-sm font-medium text-gray-400">
-                        <span class="w-2 h-2 bg-blue-400 rounded-full"></span> রকেট
-                    </span>
-                    <span class="flex items-center gap-2 text-sm font-medium text-gray-400">
-                        <span class="w-2 h-2 bg-green-500 rounded-full"></span> ক্যাশ অন ডেলিভারি
-                    </span>
-                    <span class="flex items-center gap-2 text-sm font-medium text-gray-400">
-                        <span class="w-2 h-2 bg-purple-400 rounded-full"></span> ভিসা/মাস্টারকার্ড
-                    </span>
-                    <span class="flex items-center gap-2 text-sm font-medium text-gray-400">
-                        <span class="w-2 h-2 bg-orange-400 rounded-full"></span> ট্যাপ
-                    </span>
-                    <span class="flex items-center gap-2 text-sm font-medium text-gray-400">
-                        <span class="w-2 h-2 bg-teal-400 rounded-full"></span> শিওর ক্যাশ
-                    </span>
-                </div>
-            @endfor
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="category-scroll flex gap-3 overflow-x-auto pb-1" x-data="{}" x-ref="catScroll">
+                @if(isset($categories) && $categories->count())
+                    @foreach($categories as $cat)
+                        <a href="{{ route('category.show', $cat->slug) }}"
+                           class="flex items-center gap-2 px-5 py-2.5 rounded-full border border-gray-100 bg-white hover:shadow-md transition-all whitespace-nowrap shrink-0 group"
+                           style="background: linear-gradient(135deg, {{ $cat->bg_color }}20, white);">
+                            <span class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                                  style="background: {{ $cat->icon_color }};">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                            </span>
+                            <span class="text-sm font-semibold text-gray-700 group-hover:text-brand-pink transition-colors">{{ $cat->name }}</span>
+                        </a>
+                    @endforeach
+                @else
+                    @php
+                        $defaultCats = ['সেন্টি','ফুল মালা','বাবি চুড়ি','বেনারসি','ভেনাস চুড়ি','শাখা চুড়ি','সারপ্রাইজ গিফট','সিন্দু শাড়ি','সুতার চুড়ি','সুতার মালা'];
+                        $catColors = ['#4CAF50','#E91E63','#FF9800','#E91E63','#9C27B0','#009688','#FF9800','#607D8B','#FF9800','#E91E63'];
+                        $catBgs = ['#E8F5E9','#FCE4EC','#FFF3E0','#FCE4EC','#F3E5F5','#E0F2F1','#FFF3E0','#ECEFF1','#FFF3E0','#FCE4EC'];
+                    @endphp
+                    @foreach($defaultCats as $i => $catName)
+                        <span class="flex items-center gap-2 px-5 py-2.5 rounded-full border border-gray-100 bg-white whitespace-nowrap shrink-0"
+                              style="background: linear-gradient(135deg, {{ $catBgs[$i] }}80, white);">
+                            <span class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                                  style="background: {{ $catColors[$i] }};">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                            </span>
+                            <span class="text-sm font-semibold text-gray-700">{{ $catName }}</span>
+                        </span>
+                    @endforeach
+                @endif
+            </div>
         </div>
     </section>
 
-    {{-- ==================== PRODUCTS SECTION ==================== --}}
-    <section class="py-12 sm:py-16 bg-white">
+    {{-- ==================== FEATURED PRODUCTS SECTION ==================== --}}
+    <section class="py-10 sm:py-14 bg-white" x-data="productSection()">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {{-- Section Header --}}
-            <div class="text-center mb-10">
+            <div class="text-center mb-8">
                 <span class="inline-block px-3 py-1 bg-pink-100 text-brand-pink text-xs font-semibold rounded-full mb-3">🎁 জনপ্রিয় গিফট</span>
                 <h2 class="text-2xl sm:text-3xl font-bold text-gray-900">বেস্ট সেলিং গিফট কালেকশন</h2>
                 <p class="text-gray-500 mt-2">আমাদের সেরা প্রোডাক্ট গুলো ঘুরে দেখুন</p>
             </div>
 
-            {{-- Product Grid --}}
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-                @php
-                    $products = [
-                        ['name' => 'প্রিমিয়াম গিফট বক্স', 'price' => '১,২৯৯', 'old' => '১,৫৯৯', 'emoji' => '🎁', 'badge' => 'হট'],
-                        ['name' => 'হ্যান্ড ব্যাগ কালেকশন', 'price' => '৮৯৯', 'old' => '১,১৯৯', 'emoji' => '👜', 'badge' => 'নতুন'],
-                        ['name' => 'চকলেট গিফট সেট', 'price' => '৫৯৯', 'old' => '৭৯৯', 'emoji' => '🍫', 'badge' => 'সেল'],
-                        ['name' => 'ফ্লাওয়ার বুকে', 'price' => '৯৯৯', 'old' => '১,২৯৯', 'emoji' => '💐', 'badge' => ''],
-                        ['name' => 'কসমেটিক্স সেট', 'price' => '১,৪৯৯', 'old' => '১,৯৯৯', 'emoji' => '💄', 'badge' => 'ট্রেন্ডিং'],
-                        ['name' => 'সিল্ক শাড়ি', 'price' => '২,৪৯৯', 'old' => '৩,১৯৯', 'emoji' => '👗', 'badge' => ''],
-                        ['name' => 'টেডি বিয়ার', 'price' => '৬৯৯', 'old' => '৮৯৯', 'emoji' => '🧸', 'badge' => 'জনপ্রিয়'],
-                        ['name' => 'কাতান শাড়ি', 'price' => '৩,৯৯৯', 'old' => '৪,৫৯৯', 'emoji' => '🥻', 'badge' => 'প্রিমিয়াম'],
-                    ];
-                @endphp
-
-                @foreach($products as $product)
-                    <div class="product-card group bg-white rounded-2xl border border-gray-100 hover:border-pink-200 hover:shadow-lg transition-all duration-300 overflow-hidden">
-                        {{-- Product Image --}}
-                        <div class="relative bg-gradient-to-br from-pink-50 to-pink-100/50 p-6 sm:p-8 aspect-square flex items-center justify-center overflow-hidden">
-                            <span class="text-5xl sm:text-6xl product-img transition-transform duration-300">{{ $product['emoji'] }}</span>
-                            @if($product['badge'])
-                                <span class="absolute top-3 left-3 px-2 py-0.5 bg-brand-pink text-white text-[10px] font-bold rounded-lg">
-                                    {{ $product['badge'] }}
-                                </span>
-                            @endif
-                            {{-- Wishlist --}}
-                            <button class="absolute top-3 right-3 w-8 h-8 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                                <svg class="w-4 h-4 text-gray-400 hover:text-red-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                                </svg>
-                            </button>
-                        </div>
-                        {{-- Product Info --}}
-                        <div class="p-3 sm:p-4">
-                            <h3 class="font-semibold text-gray-800 text-sm sm:text-base mb-1 truncate">{{ $product['name'] }}</h3>
-                            <div class="flex items-center gap-2">
-                                <span class="text-brand-pink font-bold text-sm sm:text-base">৳{{ $product['price'] }}</span>
-                                <span class="text-gray-400 text-xs line-through">৳{{ $product['old'] }}</span>
-                            </div>
-                        </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+                @forelse($featuredProducts as $product)
+                    @include('partials.product-card', ['product' => $product])
+                @empty
+                    <div class="col-span-full text-center py-12 text-gray-400">
+                        <p class="text-lg">এখনো কোনো প্রোডাক্ট যোগ করা হয়নি</p>
+                        <p class="text-sm mt-1">অ্যাডমিন প্যানেল থেকে প্রোডাক্ট যোগ করুন</p>
                     </div>
-                @endforeach
+                @endforelse
             </div>
 
-            {{-- View All Button --}}
-            <div class="text-center mt-10">
-                <a href="/gifts"
+            @if($featuredProducts->count() >= 8)
+            <div class="text-center mt-8">
+                <a href="{{ route('gifts') }}"
                    class="inline-flex items-center gap-2 px-8 py-3 bg-pink-50 hover:bg-pink-100 text-brand-pink rounded-xl font-semibold transition-colors border border-pink-200">
                     সকল গিফট দেখুন
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
                     </svg>
                 </a>
+            </div>
+            @endif
+        </div>
+
+        {{-- ==================== LATEST PRODUCTS ==================== --}}
+        @if($latestProducts->count())
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-14">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-green-100 text-green-600 text-xs font-semibold rounded-full mb-3">✨ নতুন আইটেম</span>
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-900">নতুন প্রোডাক্ট সমূহ</h2>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+                @foreach($latestProducts as $product)
+                    @include('partials.product-card', ['product' => $product])
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        {{-- ==================== QUICK VIEW MODAL ==================== --}}
+        <div x-show="quickViewOpen" x-cloak
+             class="fixed inset-0 z-[100] flex items-center justify-center p-4"
+             @keydown.escape.window="quickViewOpen = false">
+            {{-- Backdrop --}}
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="quickViewOpen = false"></div>
+            {{-- Modal --}}
+            <div class="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto z-10"
+                 x-show="quickViewOpen"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95">
+                {{-- Close button --}}
+                <button @click="quickViewOpen = false" class="absolute top-4 right-4 z-20 w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
+                    {{-- Left: Image --}}
+                    <div class="relative bg-gray-50 p-6 flex flex-col">
+                        <template x-if="qvProduct.category">
+                            <span class="absolute top-4 left-4 z-10 px-3 py-1 bg-yellow-400 text-gray-900 text-xs font-bold rounded-md" x-text="qvProduct.category"></span>
+                        </template>
+                        <div class="flex-1 flex items-center justify-center min-h-[300px]">
+                            <img :src="qvSelectedImage || qvProduct.image || '/images/placeholder.png'" class="max-w-full max-h-[350px] object-contain rounded-lg" alt="">
+                        </div>
+                        {{-- Thumbnails --}}
+                        <div class="flex gap-2 mt-4 justify-center" x-show="qvProduct.gallery && qvProduct.gallery.length > 0">
+                            <button @click="qvSelectedImage = qvProduct.image"
+                                    :class="qvSelectedImage === qvProduct.image || (!qvSelectedImage && true) ? 'border-brand-pink' : 'border-gray-200'"
+                                    class="w-14 h-14 rounded-lg border-2 overflow-hidden">
+                                <img :src="qvProduct.image" class="w-full h-full object-cover">
+                            </button>
+                            <template x-for="(img, idx) in qvProduct.gallery" :key="idx">
+                                <button @click="qvSelectedImage = img"
+                                        :class="qvSelectedImage === img ? 'border-brand-pink' : 'border-gray-200'"
+                                        class="w-14 h-14 rounded-lg border-2 overflow-hidden">
+                                    <img :src="img" class="w-full h-full object-cover">
+                                </button>
+                            </template>
+                        </div>
+                        <button class="absolute bottom-6 right-6 w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-pink-50">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                        </button>
+                    </div>
+
+                    {{-- Right: Details --}}
+                    <div class="p-6 sm:p-8 flex flex-col justify-center">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-1" x-text="qvProduct.name"></h2>
+                        <p class="text-sm text-gray-400 mb-1">প্রাইস</p>
+                        <p class="text-2xl font-bold text-brand-pink mb-5">৳<span x-text="Number(qvProduct.price).toLocaleString('bn-BD')"></span></p>
+
+                        {{-- Quantity + Cart + WhatsApp --}}
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="flex items-center border border-gray-200 rounded-lg">
+                                <button @click="qvQty = Math.max(1, qvQty - 1)" class="w-10 h-10 flex items-center justify-center text-gray-500 hover:bg-gray-50">−</button>
+                                <span class="w-10 h-10 flex items-center justify-center font-semibold text-gray-700 border-x border-gray-200" x-text="qvQty"></span>
+                                <button @click="qvQty++" class="w-10 h-10 flex items-center justify-center text-gray-500 hover:bg-gray-50">+</button>
+                            </div>
+                            <button @click="addToCart(qvProduct, qvQty)" class="w-10 h-10 border border-gray-200 rounded-lg flex items-center justify-center hover:bg-pink-50">
+                                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                            </button>
+                            <a :href="'https://wa.me/880XXXXXXXXXX?text=' + encodeURIComponent('আমি অর্ডার করতে চাই: ' + qvProduct.name + ' - ৳' + qvProduct.price)"
+                               target="_blank"
+                               class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-sm transition-colors">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.612.638l4.648-1.218A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.244 0-4.322-.725-6.013-1.955l-.42-.312-3.088.809.824-3.01-.343-.545A9.963 9.963 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                                হোয়াটসঅ্যাপ অর্ডার
+                            </a>
+                        </div>
+
+                        {{-- Order Button --}}
+                        <button @click="addToCart(qvProduct, qvQty); quickViewOpen = false; window.dispatchEvent(new CustomEvent('open-cart'))"
+                                class="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-lg font-semibold text-sm transition-colors mb-5">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                            অর্ডার করুন
+                        </button>
+
+                        {{-- Badges --}}
+                        <div class="flex items-center gap-4 text-xs text-gray-500 mb-3">
+                            <span class="flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
+                                ফাস্ট ডেলিভারি
+                            </span>
+                            <span class="flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                অরিজিনাল পণ্য
+                            </span>
+                        </div>
+
+                        {{-- Stock status --}}
+                        <div class="flex items-center gap-2 text-sm mb-5">
+                            <template x-if="qvProduct.stock > 0">
+                                <span class="flex items-center gap-1.5 text-green-600">
+                                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                    স্টক আছে
+                                </span>
+                            </template>
+                            <template x-if="qvProduct.stock <= 0">
+                                <span class="flex items-center gap-1.5 text-red-500 font-semibold">
+                                    স্টক নেই
+                                </span>
+                            </template>
+                        </div>
+
+                        {{-- Full Details Link --}}
+                        <a :href="window.baseUrl + '/product/' + qvProduct.slug"
+                           class="flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-brand-pink transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            সম্পূর্ণ বিবরণ দেখুন
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -500,4 +603,58 @@
             </div>
         </div>
     </footer>
+@endsection
+
+@section('scripts')
+<script>
+function productSection() {
+    return {
+        quickViewOpen: false,
+        qvProduct: {},
+        qvSelectedImage: null,
+        qvQty: 1,
+
+        async openQuickView(productId) {
+            this.qvQty = 1;
+            this.qvSelectedImage = null;
+            try {
+                const res = await fetch(window.baseUrl + '/product/' + productId + '/quick-view');
+                this.qvProduct = await res.json();
+                this.qvSelectedImage = this.qvProduct.image;
+                this.quickViewOpen = true;
+            } catch(e) {
+                console.error('Quick view error:', e);
+            }
+        },
+
+        addToCart(product, qty = 1) {
+            let cart = JSON.parse(localStorage.getItem('upohar_cart') || '[]');
+            const existing = cart.findIndex(i => i.id === product.id);
+            if (existing >= 0) {
+                cart[existing].qty += qty;
+            } else {
+                cart.push({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    image: product.image,
+                    slug: product.slug,
+                    qty: qty,
+                });
+            }
+            localStorage.setItem('upohar_cart', JSON.stringify(cart));
+            window.dispatchEvent(new CustomEvent('cart-updated'));
+        },
+
+        addToCartById(productId) {
+            fetch(window.baseUrl + '/product/' + productId + '/quick-view')
+                .then(res => res.json())
+                .then(product => {
+                    this.addToCart(product, 1);
+                    window.dispatchEvent(new CustomEvent('open-cart'));
+                });
+        }
+    }
+}
+</script>
 @endsection

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Slider;
+use App\Models\Product;
+use App\Models\Category;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -51,7 +53,9 @@ class AdminAuthController extends Controller
         $sliderCount = Slider::count();
         $activeSliders = Slider::active()->count();
         $userCount = User::count();
+        $productCount = Product::count();
+        $categoryCount = Category::count();
 
-        return view('admin.dashboard', compact('sliderCount', 'activeSliders', 'userCount'));
+        return view('admin.dashboard', compact('sliderCount', 'activeSliders', 'userCount', 'productCount', 'categoryCount'));
     }
 }
