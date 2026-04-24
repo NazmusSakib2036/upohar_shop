@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Coupon;
 use App\Models\Order;
 use Illuminate\Http\Request;
 
@@ -36,6 +37,17 @@ class CheckoutController extends Controller
         $subtotal = collect($items)->sum(fn($item) => $item['price'] * $item['qty']);
         $deliveryCharge = $subtotal >= 2500 ? 0 : 150;
         $discount = 0;
+        $couponCode = null;
+
+        if (!empty($validated['coupon_code'])) {
+            $coupon = Coupon::where('code', strtoupper($validated['coupon_code']))->first();
+            if ($coupon && $coupon->isValid($subtotal)) {
+                $discount = $coupon->calculateDiscount($subtotal);
+                $couponCode = $coupon->code;
+                $coupon->increment('used_count');
+            }
+        }
+
         $total = $subtotal + $deliveryCharge - $discount;
 
         $order = Order::create([
@@ -51,7 +63,7 @@ class CheckoutController extends Controller
             'subtotal' => $subtotal,
             'delivery_charge' => $deliveryCharge,
             'discount' => $discount,
-            'coupon_code' => $validated['coupon_code'],
+            'coupon_code' => $couponCode,
             'total' => $total,
             'payment_method' => $validated['payment_method'],
             'status' => 'pending',
@@ -64,5 +76,29 @@ class CheckoutController extends Controller
     {
         $order = Order::where('order_number', $orderNumber)->firstOrFail();
         return view('order-confirmation', compact('order'));
+    }
+
+    public function applyCoupon(Request $request)
+    {
+        $request->validate([
+            'code'     => 'required|string',
+            'subtotal' => 'required|numeric|min:0',
+        ]);
+
+        $coupon = Coupon::where('code', strtoupper($request->code))->first();
+
+        if (!$coupon || !$coupon->isValid((float) $request->subtotal)) {
+            return response()->json(['success' => false, 'message' => 'কুপন কোডটি বৈধ নয় বা মেয়াদ শেষ হয়েছে।']);
+        }
+
+        $discount = $coupon->calculateDiscount((float) $request->subtotal);
+
+        return response()->json([
+            'success'  => true,
+            'discount' => $discount,
+            'message'  => $coupon->type === 'percent'
+                ? $coupon->value . '% ছাড় প্রযোজ্য হয়েছে!'
+                : '৳' . number_format($discount) . ' ছাড় প্রযোজ্য হয়েছে!',
+        ]);
     }
 }

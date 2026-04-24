@@ -3,7 +3,10 @@
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\SliderController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\CouponController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CheckoutController;
 use App\Models\Slider;
@@ -41,6 +44,7 @@ Route::get('/contact', function () {
 // Checkout Routes
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+Route::post('/coupon/apply', [CheckoutController::class, 'applyCoupon'])->name('coupon.apply');
 Route::get('/order/{orderNumber}', [CheckoutController::class, 'confirmation'])->name('order.confirmation');
 
 // ==================== ADMIN ROUTES ====================
@@ -54,6 +58,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('admin')->group(function () {
         Route::get('/', [AdminAuthController::class, 'dashboard'])->name('dashboard');
 
+        // Profile
+        Route::get('profile', [ProfileController::class, 'edit'])->name('profile');
+        Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::put('profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+
         // Slider CRUD
         Route::resource('sliders', SliderController::class)->except(['show']);
         Route::post('sliders/{slider}/toggle', [SliderController::class, 'toggleActive'])->name('sliders.toggle');
@@ -65,5 +74,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Product CRUD
         Route::resource('products', AdminProductController::class)->except(['show']);
         Route::post('products/{product}/toggle', [AdminProductController::class, 'toggleActive'])->name('products.toggle');
+
+        // Orders
+        Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
+        Route::get('orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+        Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.status');
+        Route::delete('orders/{order}', [AdminOrderController::class, 'destroy'])->name('orders.destroy');
+
+        // Coupons
+        Route::resource('coupons', CouponController::class)->except(['show']);
+        Route::post('coupons/{coupon}/toggle', [CouponController::class, 'toggle'])->name('coupons.toggle');
     });
 });

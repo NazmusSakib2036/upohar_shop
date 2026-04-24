@@ -302,6 +302,10 @@
                             <span class="text-gray-500">ডেলিভারি চার্জ</span>
                             <span class="font-medium text-gray-700" x-text="deliveryCharge > 0 ? '৳' + Number(deliveryCharge).toLocaleString('bn-BD') : 'ফ্রি'"></span>
                         </div>
+                        <div class="flex justify-between" x-show="appliedDiscount > 0">
+                            <span class="text-green-600">ডিস্কাউন্ট (<span x-text="form.coupon_code"></span>)</span>
+                            <span class="font-medium text-green-600">-৳<span x-text="Number(appliedDiscount).toLocaleString('bn-BD')"></span></span>
+                        </div>
                     </div>
 
                     {{-- Grand Total --}}
@@ -323,11 +327,16 @@
                                 <input type="text" x-model="form.coupon_code" placeholder="কোডটি প্রদান করুন..."
                                        class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-pink/30 focus:border-brand-pink outline-none transition-all">
                             </div>
-                            <button type="button" class="px-5 py-2.5 bg-brand-pink text-white text-sm font-bold rounded-xl hover:bg-brand-pink-dark transition-colors shrink-0">
-                                APPLY
+                            <button type="button" @click="applyCoupon()" :disabled="couponLoading"
+                                    class="px-5 py-2.5 bg-brand-pink text-white text-sm font-bold rounded-xl hover:bg-brand-pink-dark transition-colors shrink-0 disabled:opacity-60">
+                                <span x-show="!couponLoading">APPLY</span>
+                                <span x-show="couponLoading">...</span>
                             </button>
                         </div>
                     </div>
+
+                    {{-- Coupon Message --}}
+                    <div x-show="couponMessage" class="mt-2 text-xs font-medium" :class="couponSuccess ? 'text-green-600' : 'text-red-500'" x-text="couponMessage"></div>
 
                     {{-- Submit Button --}}
                     <button type="submit" :disabled="isSubmitting"
@@ -409,6 +418,10 @@ function checkoutPage() {
     return {
         cartItems: JSON.parse(localStorage.getItem('upohar_cart') || '[]'),
         isSubmitting: false,
+        couponLoading: false,
+        couponMessage: '',
+        couponSuccess: false,
+        appliedDiscount: 0,
         form: {
             recipient_name: '',
             recipient_phone: '',
@@ -429,7 +442,36 @@ function checkoutPage() {
             return this.subtotal >= 2500 ? 0 : 150;
         },
         get grandTotal() {
-            return this.subtotal + this.deliveryCharge;
+            return this.subtotal + this.deliveryCharge - this.appliedDiscount;
+        },
+
+        async applyCoupon() {
+            if (!this.form.coupon_code.trim()) return;
+            this.couponLoading = true;
+            this.couponMessage = '';
+            this.appliedDiscount = 0;
+            try {
+                const res = await fetch(window.baseUrl + '/coupon/apply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+                    body: JSON.stringify({ code: this.form.coupon_code, subtotal: this.subtotal })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    this.appliedDiscount = data.discount;
+                    this.couponSuccess = true;
+                    this.couponMessage = data.message;
+                } else {
+                    this.couponSuccess = false;
+                    this.couponMessage = data.message;
+                    this.form.coupon_code = '';
+                }
+            } catch (e) {
+                this.couponSuccess = false;
+                this.couponMessage = 'নেটওয়ার্ক সমস্যা, আবার চেষ্টা করুন।';
+            } finally {
+                this.couponLoading = false;
+            }
         },
 
         validateForm() {
@@ -465,6 +507,7 @@ function checkoutPage() {
                 formData.append('items', JSON.stringify(this.cartItems));
                 formData.append('payment_method', this.form.payment_method);
                 formData.append('coupon_code', this.form.coupon_code);
+                formData.append('discount_applied', this.appliedDiscount);
                 formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
 
                 const res = await fetch(window.baseUrl + '/checkout', {
